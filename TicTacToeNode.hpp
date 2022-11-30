@@ -4,28 +4,35 @@
 #include<string>
 #include<iostream>
 #include<vector>
+#include<unordered_set>
+#include<map>
+
+static std::map<TicTacToeNode,TicTacToeNode*> knownStates;
 
 class TicTacToeNode {
 public:
-    TicTacToeNode(bool turn, char *arr[][3]) 
+    TicTacToeNode(std::unordered_set<int> *openStates, std::unordered_set<int> *takenOStates, std::unordered_set<int> *takenXStates) 
     {
-        currentState = arr;
-        currentTurn = turn;
-        // _listOfNodes = new std::vector<TicTacToeNode *>;
-    
-        void printArr()
-        {
-            for(int i = 0; i < 3; i++)
-                for(int j = 0; j < 3; j++)
-                    std::cout << arr[i][j];
-        }
+        open = openStates;
+        takenX = takenXStates;
+        takenO = takenOStates;
     }
-
+    void printSetContents(std::unordered_set<int> const &temp);
+    void computeNext();
+    bool operator< (const TicTacToeNode& lhs, const TicTacToeNode& rhs) const
+   {
+       //THIS IS ONLY FOR C++'S MAP. IT IS CURSED AND SO IS THE LANGUAGE
+       return !(lhs.open == rhs.open && lhs.takenX == rhs.takenX && lhs.takenO == lhs.takenO);
+   }
+   
 private:
-    // std::vector<TicTacToeNode *> *_listOfNodes;
-    float winProb;
-    bool currentTurn;
-    char **currentState;
+    std::unordered_set<int> open;
+    std::unordered_set<int> takenX;
+    std::unordered_set<int> takenO;
+    std::vector<TicTacToeNode*> parents;
+    std::vector<TicTacToeNode*> children;
+    float probabilityVal;
+
 };
 
 #endif
