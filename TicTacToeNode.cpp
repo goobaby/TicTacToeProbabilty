@@ -213,13 +213,16 @@ void TicTacToeNode::game(TicTacToeNode * masterBoard){
         open = {0,1,2,3,4,5,6,7,8};
         takenX = {};
         takenO = {};
-        while(open.size() > 1 && !doesPlayerWin(true) && !doesPlayerWin(false)){
+        while(!open.empty() && !doesPlayerWin(true) && !doesPlayerWin(false)){
             nicePrint();
             cout << endl << "Input:";
             cin >> playerChoice;
             open.erase(playerChoice);
             takenX.insert(playerChoice);
-            cout << "Thinking..." << endl;
+            if(open.empty()){
+                break;
+            }
+            //cout << "Thinking..." << endl;
             auto curBoard = masterBoard->findInKnown(this);
             float min = 2.0;
             vector<TicTacToeNode*> bestKids;
@@ -249,11 +252,11 @@ void TicTacToeNode::game(TicTacToeNode * masterBoard){
             cout << "loop end" << endl;
         }
         if(doesPlayerWin(true)){
-            cout << "Player X wins! (how???)" << endl;
+            cout << "Player X wins! (how???)" << endl << endl;
         }else if(doesPlayerWin(false)){
-            cout << "Player O wins!" << endl;
+            cout << "Player O wins!" << endl << endl;
         }else{
-            cout << "Tie" << endl;
+            cout << "Tie." << endl << endl;
         }
     }
 }
