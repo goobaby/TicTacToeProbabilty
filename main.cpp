@@ -38,9 +38,7 @@ int main()
     auto firstBaby = TicTacToeNode(openStates,takenXStates,takenOStates, rules);
     knownStates.push_back(&firstBaby);
     firstBaby.computeNext();
-
-    auto gameBoard = TicTacToeNode(openStates,takenXStates,takenOStates, rules);
-    gameBoard.game(&firstBaby);
+    firstBaby.calculateMinimaxProbability(firstBaby.getLeafNodes());
 
     printSmartness(&firstBaby);
 
@@ -49,10 +47,14 @@ int main()
     rules.set(OTWICE_F);
     firstBaby = TicTacToeNode(openStates,takenXStates,takenOStates, rules);
     knownStates = {};
+    leafNodes = {};
     knownStates.push_back(&firstBaby);
     firstBaby.computeNext();
-
+    firstBaby.calculateMinimaxProbability(firstBaby.getLeafNodes());
     printSmartness(&firstBaby);
+    
+    auto gameBoard = TicTacToeNode(openStates,takenXStates,takenOStates, rules);
+    gameBoard.game(&firstBaby);
 
 }
 

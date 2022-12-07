@@ -8,6 +8,7 @@
 #include<map>
 #include<iterator>
 #include <bitset>
+#include<cmath>
 
 #define TTT_BITSET_L 4
 
@@ -36,6 +37,9 @@ public:
     void nicePrint();
     void game(TicTacToeNode*);
     friend bool operator== (const TicTacToeNode& lhs, const TicTacToeNode& rhs);
+    void calculateMinimaxProbability(std::unordered_set<TicTacToeNode*> layer);
+    float minimaxProbability = NAN;
+    std::unordered_set<TicTacToeNode*> getLeafNodes();
     
    
 private:
@@ -51,5 +55,6 @@ private:
 };
 
 static std::vector<TicTacToeNode*> knownStates = {};
+static std::unordered_set<TicTacToeNode*> leafNodes = {};
 
 #endif

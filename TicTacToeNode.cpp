@@ -1,4 +1,5 @@
 #include "TicTacToeNode.hpp"
+#include <unordered_set>
 #include <stdlib.h>  //used for game
 using namespace std;
 
@@ -59,6 +60,7 @@ void TicTacToeNode::computeNext()
 
         if(previouslyFound == nullptr){ //If it's nullptr, this is our first time getting herer
             addToKnown(new_node);
+            leafNodes.insert(new_node);
             new_node->parents.push_back(this);
             children.push_back(new_node);
 
@@ -68,6 +70,7 @@ void TicTacToeNode::computeNext()
             }
         }else{
             children.push_back(previouslyFound); //Get the pointer from our previously found states
+            
             previouslyFound->parents.push_back(this);
             previouslyFound->count += 1;
             delete new_node;
@@ -132,6 +135,33 @@ bool TicTacToeNode::doesPlayerWin(bool isPlayerX){
     ;
 }
 
+//Don't work yet for cyclic stuff
+void TicTacToeNode::calculateMinimaxProbability(std::unordered_set<TicTacToeNode*> layer){
+    //cout << layer.size() << endl;
+    std::unordered_set<TicTacToeNode*> nextLayer = {};
+    for(TicTacToeNode* node : layer){
+        if(node->children.size() == 0){
+            node->minimaxProbability = (float)(node->doesPlayerWin(true) - node->doesPlayerWin(false));
+        }else{
+            float summ = 0.0;
+            for(auto kids : node->children){
+                summ += kids->minimaxProbability;
+            }
+            node->minimaxProbability = summ / node->children.size();
+        }
+        for(auto parent : node->parents){
+            
+            if(nextLayer.find(parent) == nextLayer.end()){
+                nextLayer.insert(parent);
+            }
+        }
+    }
+    if(!nextLayer.empty()){
+        calculateMinimaxProbability(nextLayer);
+    }
+}
+
+//Fake, old, bad, cringe (only works for average values)
 float TicTacToeNode::getWinProbability(bool isPlayerX, bool XSmart, bool OSmart){
     if(children.size() == 0){
         return (float)(doesPlayerWin(isPlayerX));
@@ -145,26 +175,20 @@ float TicTacToeNode::getWinProbability(bool isPlayerX, bool XSmart, bool OSmart)
     }
     else{
         //If we're playing to minimize the win probability
-        if(isPlayerX != isXTurn()){
-            float min = 1.0;
-            for(auto child : children) {
-                //could be wrong
-                float prob = child->getWinProbability(isPlayerX,XSmart,OSmart);
-                if (prob < min) {
-                    min = prob;
-                }
+        float multiplier = 1.0;
+        if(!isXTurn())
+            multiplier = -1.0;
+        float max = -3.0;
+        TicTacToeNode * t;
+        for(auto child : children) {
+            //could be wrong
+            float prob = multiplier*child->minimaxProbability;
+            if (prob > max) {
+                max = prob;
+                t = child;
             }
-            return min;
-        } else{
-            float max = -2.0;
-            for(auto child : children) {
-                float prob = child->getWinProbability(isPlayerX,XSmart,OSmart);
-                if (prob > max) {
-                    max = prob;
-                }
-            }
-            return max;
         }
+        return t->getWinProbability(isPlayerX,XSmart,OSmart);
     }
 }
 
@@ -215,41 +239,46 @@ void TicTacToeNode::game(TicTacToeNode * masterBoard){
         takenO = {};
         while(!open.empty() && !doesPlayerWin(true) && !doesPlayerWin(false)){
             nicePrint();
-            cout << endl << "Input:";
-            cin >> playerChoice;
-            open.erase(playerChoice);
-            takenX.insert(playerChoice);
-            if(open.empty()){
-                break;
-            }
-            //cout << "Thinking..." << endl;
-            auto curBoard = masterBoard->findInKnown(this);
-            float min = 2.0;
-            vector<TicTacToeNode*> bestKids;
-            if(curBoard == nullptr){
-                cout << "why" << endl;
-            }
-            for(auto child : curBoard->children) {
-                float prob = child->getWinProbability(true,true,true);
-                if (prob < min) {
-                    min = prob;
-                    bestKids = {child};
-                } else if (prob == min){
-                    bestKids.push_back(child);
-                }
-            }
-            auto bestKid = bestKids[rand() % bestKids.size()];
-            int moveChoice = 0;
-            for(int i = 0; i < 9; i++){
-                if(takenO.count(i) == 0 && bestKid->takenO.count(i) == 1){
-                    moveChoice = i;
-                    cout << "found move at " << moveChoice << endl;
+            cout << endl;
+            if(isXTurn()){
+                cin >> playerChoice;
+                open.erase(playerChoice);
+                takenX.insert(playerChoice);
+                if(open.empty()){
                     break;
                 }
+            }else{
+                auto curBoard = masterBoard->findInKnown(this);
+                float min = 2.0;
+                vector<TicTacToeNode*> bestKids;
+                if(curBoard == nullptr){
+                    cout << "why" << endl;
+                }
+                for(auto child : curBoard->children) {
+                    float prob = child->getWinProbability(true,true,true);
+                    if (prob < min) {
+                        min = prob;
+                        bestKids = {child};
+                    } else if (prob == min){
+                        bestKids.push_back(child);
+                    }
+                }
+                auto bestKid = bestKids[rand() % bestKids.size()];
+                int moveChoice = 0;
+                for(int i = 0; i < 9; i++){
+                    if(takenO.count(i) == 0 && bestKid->takenO.count(i) == 1){
+                        moveChoice = i;
+                        cout << "found move at " << moveChoice << endl;
+                        break;
+                    }
+                }
+                open.erase(moveChoice);
+                takenO.insert(moveChoice);
+                cout << "loop end" << endl;
             }
-            open.erase(moveChoice);
-            takenO.insert(moveChoice);
-            cout << "loop end" << endl;
+
+
+            //cout << "Thinking..." << endl;
         }
         if(doesPlayerWin(true)){
             cout << "Player X wins! (how???)" << endl << endl;
@@ -259,4 +288,7 @@ void TicTacToeNode::game(TicTacToeNode * masterBoard){
             cout << "Tie." << endl << endl;
         }
     }
+}
+std::unordered_set<TicTacToeNode*> TicTacToeNode::getLeafNodes(){
+    return leafNodes;
 }
