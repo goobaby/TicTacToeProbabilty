@@ -26,8 +26,68 @@ void printSmartness(TicTacToeNode* ttt){
     //cout << 1.0 - (firstBaby.getWinProbability(true) + firstBaby.getWinProbability(false)) << endl;
 }
 
+void game(){
+    int games = 0;
+    bool isUserX;
+    bool isOrderOdd;
+    bool shouldRulesChange = true;
+    TicTacToeNode* firstBaby;
+    string in;
+    while (true){
+        if(games > 0){
+            getline(cin,in);
+            cout << "Would you like to play again? (y/n): ";
+            getline(cin, in);
+            if(in[0] != 'y'){
+                return;
+            }
+            cout << "Do you want to change the rules? (y/n): ";
+            getline(cin, in);
+            shouldRulesChange = in[0] == 'y';
+        }
+        if(shouldRulesChange){
+            cout << "Would you like to be X? (y/n): ";
+            getline(cin, in);
+            isUserX = in[0] == 'y';
+
+
+            cout << "Would you like to play with the modified play order? (y/n): ";
+            getline(cin, in);
+            isOrderOdd = in[0] == 'y';
+        }
+        
+
+        auto rules = std::bitset<TTT_BITSET_L>();
+
+        rules.set(OTWICE_F,isOrderOdd);
+
+        std::unordered_set<int> openStates = {0,1,2,3,4,5,6,7,8};
+        std::unordered_set<int> takenXStates = {};
+        std::unordered_set<int> takenOStates = {};
+        if(shouldRulesChange){
+            cout << "Calculating options..." << endl;
+            *firstBaby->getKnownStates() = {};
+            firstBaby = new TicTacToeNode(openStates,takenXStates,takenOStates, rules);
+            firstBaby->getKnownStates()->push_back(firstBaby);
+            firstBaby->computeNext();
+        }
+        auto gameBoard = TicTacToeNode(openStates,takenXStates,takenOStates, rules);
+        gameBoard.game(firstBaby, isUserX);
+        games++;
+    }
+        
+}
+
+
 int main()
 {
+    string in;
+    cout << "Would you like to play against the AI? This otherwise prints out the W/L probabilities (y/n): ";
+    getline(cin, in);
+    if(in[0] == 'y'){
+        game();
+        return 0;
+    }
     auto rules = bitset<TTT_BITSET_L>();
     unordered_set<int> openStates = {0,1,2,3,4,5,6,7,8};
     unordered_set<int> takenXStates = {};
@@ -36,38 +96,22 @@ int main()
 
     cout << "-----------Normal Tic-Tac-Toe (X player goes first)----------" << endl;
     auto firstBaby = TicTacToeNode(openStates,takenXStates,takenOStates, rules);
-    knownStates.push_back(&firstBaby);
+    firstBaby.getKnownStates()->push_back(&firstBaby);
     firstBaby.computeNext();
-    firstBaby.calculateMinimaxProbability(firstBaby.getLeafNodes());
-
     printSmartness(&firstBaby);
+
+    firstBaby.reset();
 
     cout << "-----------Unnormal Tic-Tac-Toe (X player goes first and O player goes twice then its normal)----------" << endl;
     cout << "-------------------------------------------------------------------------------------------------------" << endl; 
     rules.set(OTWICE_F);
     firstBaby = TicTacToeNode(openStates,takenXStates,takenOStates, rules);
     knownStates = {};
-    leafNodes = {};
     knownStates.push_back(&firstBaby);
     firstBaby.computeNext();
-    firstBaby.calculateMinimaxProbability(firstBaby.getLeafNodes());
+
     printSmartness(&firstBaby);
-    
-    auto gameBoard = TicTacToeNode(openStates,takenXStates,takenOStates, rules);
-    gameBoard.game(&firstBaby);
 
 }
 
-void game(){
-    auto rules = std::bitset<TTT_BITSET_L>();
-    std::unordered_set<int> openStates = {0,1,2,3,4,5,6,7,8};
-    std::unordered_set<int> takenXStates = {};
-    std::unordered_set<int> takenOStates = {};
 
-    auto firstBaby = TicTacToeNode(openStates,takenXStates,takenOStates, rules);
-    knownStates.push_back(&firstBaby);
-    firstBaby.computeNext();
-
-    auto gameBoard = TicTacToeNode(openStates,takenXStates,takenOStates, rules);
-    gameBoard.game(&firstBaby);
-}
