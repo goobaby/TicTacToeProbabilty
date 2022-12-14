@@ -22,7 +22,6 @@ void printSmartness(TicTacToeNode* ttt){
     cout << "Odds of Player X winning (Smart X and Smart O): " << xOXSmartWin << endl;
     cout << "Odds of Player O winning (Smart X and Smart O): " << oOXSmartWin << endl;
     cout << "Odds of draw with with both players being smart: " << 1.0 - xOXSmartWin - oOXSmartWin << endl;
-    cout << "-------------------------------------------------------------" << endl;   
     //cout << 1.0 - (firstBaby.getWinProbability(true) + firstBaby.getWinProbability(false)) << endl;
 }
 
@@ -94,7 +93,7 @@ int main()
     unordered_set<int> takenOStates = {};
 
 
-    cout << "-----------Normal Tic-Tac-Toe (X player goes first)----------" << endl;
+    cout << "-----------Normal Tic-Tac-Toe----------" << endl;
     auto firstBaby = TicTacToeNode(openStates,takenXStates,takenOStates, rules);
     firstBaby.getKnownStates()->push_back(&firstBaby);
     firstBaby.computeNext();
@@ -102,8 +101,7 @@ int main()
 
     firstBaby.reset();
 
-    cout << "-----------Unnormal Tic-Tac-Toe (X player goes first and O player goes twice then its normal)----------" << endl;
-    cout << "-------------------------------------------------------------------------------------------------------" << endl; 
+    cout << "-----------Modified Tic-Tac-Toe--------" << endl;
     rules.set(OTWICE_F);
     firstBaby = TicTacToeNode(openStates,takenXStates,takenOStates, rules);
     knownStates = {};
